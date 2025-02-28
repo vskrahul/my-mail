@@ -1,5 +1,7 @@
 package org.example.test;
 
+import com.azure.identity.InteractiveBrowserCredential;
+import com.azure.identity.InteractiveBrowserCredentialBuilder;
 import com.azure.identity.OnBehalfOfCredential;
 import com.azure.identity.OnBehalfOfCredentialBuilder;
 import com.microsoft.graph.models.MessageCollectionResponse;
@@ -20,37 +22,46 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
-public class Test {
-    private static final String CLIENT_ID = "9112cdf2-35d3-452e-9468-aa0cea5b111f";
-    private static final String CLIENT_SECRET = "-Ff8Q~~~1ReU16JmAcrXDZxw_zC~ClVGdGx81ccI";
+public class InteractiveBrowserCredentialBuilderTest {
+    private static final String CLIENT_ID = Creds.CLIENT_ID;
+    private static final String CLIENT_SECRET = Creds.CLIENT_SECRET;
+    private static final String TENANT_ID = "488f2a2b-403d-4a82-9ce7-5834c5476fb1";
     private static final String REDIRECT_URI = "http://localhost:8080/auth";
     private static final String TOKEN_URL = "https://login.microsoftonline.com/488f2a2b-403d-4a82-9ce7-5834c5476fb1/oauth2/v2.0/token";
     private static final String GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me";
-    private static final String AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize" +
+    private static final String AUTH_URL = "https://login.microsoftonline.com/488f2a2b-403d-4a82-9ce7-5834c5476fb1/oauth2/v2.0/authorize" +
             "?client_id=" + CLIENT_ID +
             "&response_type=code" +
             "&redirect_uri=" + REDIRECT_URI +
             "&response_mode=query" +
-            "&scope=api://9112cdf2-35d3-452e-9468-aa0cea5b111f/.default" +
+            "&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default" +
             "&state=12345";
 
     private static String ACCESS_TOKEN = "";
+    final static String[] scopes = new String[] {"User.Read"};
 
     public static void main(String[] args) throws Exception {
-        startLocalServer();
-        JFrame frame = new JFrame("Outlook Authentication");
-        frame.setSize(400, 200);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        InteractiveBrowserCredential credential = new InteractiveBrowserCredentialBuilder()
+                .clientId(CLIENT_ID)
+                .tenantId(TENANT_ID)
+                .redirectUrl(REDIRECT_URI)
+                .build();
 
-        JPanel panel = new JPanel();
-        frame.add(panel);
-        placeComponents(panel);
+        if (null == credential) {
+            throw new Exception("Unexpected error");
+        }
 
-        frame.setVisible(true);
+        GraphServiceClient graphServiceClient = new GraphServiceClient(credential);
+        MessageCollectionResponse result = graphServiceClient.me().messages().get(requestConfiguration -> {
+            requestConfiguration.queryParameters.select = new String []{"sender", "subject"};
+        });
+
+        result.getValue()
+                .stream()
+                .forEach(m -> {
+                    System.out.println(m.getSubject());
+                });
     }
 
     private static void placeComponents(JPanel panel) {
@@ -87,7 +98,7 @@ public class Test {
                     String code = query.split("code=")[1].split("&")[0];
                     System.out.println("Authorization Code: " + code);
                     String accessToken = exchangeAuthorizationCodeForToken(code);
-                    //server.stop(1);
+                    server.stop(1);
                     if (accessToken != null) {
                         //fetchUserProfile(accessToken);
                         fetchByGraph();
@@ -116,9 +127,9 @@ public class Test {
             String params = "client_id=" + CLIENT_ID +
                     "&client_secret=" + CLIENT_SECRET +
                     "&code=" + code +
-                    "&scope=https://graph.microsoft.com/custom.scope" +
+                    "&scope=https://graph.microsoft.com/.default" +
                     //"&grant_type=authorization_code";
-                    "&grant_type=authorization_code";
+                    "&grant_type=client_credentials";
 
             OutputStream os = conn.getOutputStream();
             os.write(params.getBytes());
@@ -193,7 +204,6 @@ public class Test {
                 .forEach(m -> {
                     System.out.println(m.getSubject());
                 });
-
 
     }
 }
