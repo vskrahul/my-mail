@@ -1,17 +1,16 @@
-package org.example.test;
+package com.github.vskrahul.azure.lab;
 
+import com.github.vskrahul.azure.graph.Creds;
 import com.microsoft.aad.msal4j.*;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collections;
-import java.util.Properties;
 
 public class ClientCredentialGrant {
     // It is important to reuse this object, as it will cache tokens.

@@ -1,4 +1,4 @@
-package org.example.test;
+package com.github.vskrahul.azure.lab;
 
 import com.azure.core.credential.TokenRequestContext;
 import com.azure.identity.InteractiveBrowserCredential;

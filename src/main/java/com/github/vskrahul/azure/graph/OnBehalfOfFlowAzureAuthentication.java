@@ -1,7 +1,5 @@
-package org.example.test;
+package com.github.vskrahul.azure.graph;
 
-import com.azure.identity.InteractiveBrowserCredential;
-import com.azure.identity.InteractiveBrowserCredentialBuilder;
 import com.azure.identity.OnBehalfOfCredential;
 import com.azure.identity.OnBehalfOfCredentialBuilder;
 import com.microsoft.graph.models.MessageCollectionResponse;
@@ -23,10 +21,9 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
 
-public class InteractiveBrowserCredentialBuilderTest {
+public class OnBehalfOfFlowAzureAuthentication {
     private static final String CLIENT_ID = Creds.CLIENT_ID;
     private static final String CLIENT_SECRET = Creds.CLIENT_SECRET;
-    private static final String TENANT_ID = Creds.TENANT_ID;
     private static final String REDIRECT_URI = "http://localhost:8080/auth";
     private static final String TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
     private static final String GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me";
@@ -35,33 +32,22 @@ public class InteractiveBrowserCredentialBuilderTest {
             "&response_type=code" +
             "&redirect_uri=" + REDIRECT_URI +
             "&response_mode=query" +
-            "&scope=https%3A%2F%2Fgraph.microsoft.com%2F.default" +
+            "&scope=https://graph.microsoft.com/.default" +
             "&state=12345";
 
     private static String ACCESS_TOKEN = "";
-    final static String[] scopes = new String[] {"User.Read"};
 
     public static void main(String[] args) throws Exception {
-        InteractiveBrowserCredential credential = new InteractiveBrowserCredentialBuilder()
-                .clientId(CLIENT_ID)
-                .tenantId(TENANT_ID)
-                .redirectUrl(REDIRECT_URI)
-                .build();
+        startLocalServer();
+        JFrame frame = new JFrame("Outlook Authentication");
+        frame.setSize(400, 200);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        if (null == credential) {
-            throw new Exception("Unexpected error");
-        }
+        JPanel panel = new JPanel();
+        frame.add(panel);
+        placeComponents(panel);
 
-        GraphServiceClient graphServiceClient = new GraphServiceClient(credential);
-        MessageCollectionResponse result = graphServiceClient.me().messages().get(requestConfiguration -> {
-            requestConfiguration.queryParameters.select = new String []{"sender", "subject"};
-        });
-
-        result.getValue()
-                .stream()
-                .forEach(m -> {
-                    System.out.println(m.getSubject());
-                });
+        frame.setVisible(true);
     }
 
     private static void placeComponents(JPanel panel) {
@@ -98,10 +84,12 @@ public class InteractiveBrowserCredentialBuilderTest {
                     String code = query.split("code=")[1].split("&")[0];
                     System.out.println("Authorization Code: " + code);
                     String accessToken = exchangeAuthorizationCodeForToken(code);
-                    server.stop(1);
+                    String middlewareAccessToken = fetchMiddleTierAccessToken(accessToken);
+                    ACCESS_TOKEN = middlewareAccessToken;
+                    //server.stop(1);
                     if (accessToken != null) {
-                        //fetchUserProfile(accessToken);
-                        fetchByGraph();
+                        fetchInboxMessageInfo();
+                        //fetchByGraph();
                     }
                 }
                 String response = "Authentication successful. You can close this window.";
@@ -117,19 +105,33 @@ public class InteractiveBrowserCredentialBuilderTest {
     }
 
     private static String exchangeAuthorizationCodeForToken(String code) {
+        String params = "grant_type=authorization_code" +
+                "&client_id=" + CLIENT_ID +
+                "&code=" + code +
+                "&scope=api://" + CLIENT_ID + "/.default" +
+                "&redirect_uri=http://localhost:8080/auth";
+
+        return oauth2TokenCall(params);
+    }
+
+    private static String fetchMiddleTierAccessToken(String accessToken) {
+        String params = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" +
+                "&client_id=" + CLIENT_ID +
+                "&client_secret=" + CLIENT_SECRET +
+                "&assertion=" + accessToken +
+                "&scope=https://graph.microsoft.com/.default" +
+                "&requested_token_use=on_behalf_of";
+
+        return oauth2TokenCall(params);
+    }
+
+    private static String oauth2TokenCall(String params) {
         try {
             URL url = new URL(TOKEN_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             conn.setDoOutput(true);
-
-            String params = "client_id=" + CLIENT_ID +
-                    "&client_secret=" + CLIENT_SECRET +
-                    "&code=" + code +
-                    "&scope=https://graph.microsoft.com/.default" +
-                    //"&grant_type=authorization_code";
-                    "&grant_type=client_credentials";
 
             OutputStream os = conn.getOutputStream();
             os.write(params.getBytes());
@@ -146,7 +148,6 @@ public class InteractiveBrowserCredentialBuilderTest {
 
             String accessToken = response.toString().split("\"access_token\":\"")[1].split("\"")[0];
             System.out.println("AccessToken Body " + accessToken);
-            ACCESS_TOKEN = accessToken;
             return accessToken;
         } catch (Exception e) {
             e.printStackTrace();
@@ -154,12 +155,15 @@ public class InteractiveBrowserCredentialBuilderTest {
         }
     }
 
-    private static void fetchUserProfile(String accessToken) {
+    /**
+     * This is working using HTTP endpoints
+     */
+    private static void fetchInboxMessageInfo() {
         try {
-            URL url = new URL(GRAPH_API_URL);
+            URL url = new URL(GRAPH_API_URL + "/mailFolders/inbox");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("Authorization", "Bearer " + accessToken);
+            conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
 
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String inputLine;
@@ -169,28 +173,15 @@ public class InteractiveBrowserCredentialBuilderTest {
             }
             in.close();
 
-            System.out.println("User Profile: " + response.toString());
+            System.out.println("User Profile: " + response);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     static void fetchByGraph() {
-
-//        GraphServiceClient graphServiceClient = GraphServiceClient
-//                .builder()
-//                .authenticationProvider(request -> {
-//                    CompletableFuture<String> completableFuture = new CompletableFuture<>();
-//                    completableFuture.complete(ACCESS_TOKEN);
-//                    return completableFuture;
-//                })
-//                .buildClient();
-//        graphServiceClient.me()
-//                .messages()
-//                .getOptions()
-//
         final OnBehalfOfCredential credential = new OnBehalfOfCredentialBuilder()
-                .clientId(CLIENT_ID).tenantId(null).clientSecret(CLIENT_SECRET)
+                .clientId(CLIENT_ID).tenantId("common").clientSecret(CLIENT_SECRET)
                 .userAssertion(ACCESS_TOKEN).build();
 
         final GraphServiceClient graphClient = new GraphServiceClient(credential, new String[] {"https://graph.microsoft.com/.default"});
@@ -204,6 +195,5 @@ public class InteractiveBrowserCredentialBuilderTest {
                 .forEach(m -> {
                     System.out.println(m.getSubject());
                 });
-
     }
 }
