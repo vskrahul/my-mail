@@ -25,17 +25,17 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class Test {
-    private static final String CLIENT_ID = "9112cdf2-35d3-452e-9468-aa0cea5b111f";
-    private static final String CLIENT_SECRET = "-Ff8Q~~~1ReU16JmAcrXDZxw_zC~ClVGdGx81ccI";
+    private static final String CLIENT_ID = Creds.CLIENT_ID;
+    private static final String CLIENT_SECRET = Creds.CLIENT_SECRET;
     private static final String REDIRECT_URI = "http://localhost:8080/auth";
-    private static final String TOKEN_URL = "https://login.microsoftonline.com/488f2a2b-403d-4a82-9ce7-5834c5476fb1/oauth2/v2.0/token";
+    private static final String TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
     private static final String GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me";
     private static final String AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize" +
             "?client_id=" + CLIENT_ID +
             "&response_type=code" +
             "&redirect_uri=" + REDIRECT_URI +
             "&response_mode=query" +
-            "&scope=api://9112cdf2-35d3-452e-9468-aa0cea5b111f/.default" +
+            "&scope=https://graph.microsoft.com/.default" +
             "&state=12345";
 
     private static String ACCESS_TOKEN = "";

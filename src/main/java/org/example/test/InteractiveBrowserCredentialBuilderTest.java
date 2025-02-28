@@ -26,11 +26,11 @@ import java.net.URL;
 public class InteractiveBrowserCredentialBuilderTest {
     private static final String CLIENT_ID = Creds.CLIENT_ID;
     private static final String CLIENT_SECRET = Creds.CLIENT_SECRET;
-    private static final String TENANT_ID = "488f2a2b-403d-4a82-9ce7-5834c5476fb1";
+    private static final String TENANT_ID = Creds.TENANT_ID;
     private static final String REDIRECT_URI = "http://localhost:8080/auth";
-    private static final String TOKEN_URL = "https://login.microsoftonline.com/488f2a2b-403d-4a82-9ce7-5834c5476fb1/oauth2/v2.0/token";
+    private static final String TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
     private static final String GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me";
-    private static final String AUTH_URL = "https://login.microsoftonline.com/488f2a2b-403d-4a82-9ce7-5834c5476fb1/oauth2/v2.0/authorize" +
+    private static final String AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize" +
             "?client_id=" + CLIENT_ID +
             "&response_type=code" +
             "&redirect_uri=" + REDIRECT_URI +

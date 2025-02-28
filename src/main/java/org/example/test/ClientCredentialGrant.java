@@ -19,7 +19,7 @@ public class ClientCredentialGrant {
 
     public static void main(String args[]) throws Exception{
 
-        String authority = "https://login.microsoftonline.com/488f2a2b-403d-4a82-9ce7-5834c5476fb1/";
+        String authority = "https://login.microsoftonline.com/common/";
         String clientId = Creds.CLIENT_ID;
         String secret = Creds.CLIENT_SECRET;
         String scope = "https://graph.microsoft.com/.default";
