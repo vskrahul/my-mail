@@ -160,7 +160,7 @@ public class OnBehalfOfFlowAzureAuthentication {
      */
     private static void fetchInboxMessageInfo() {
         try {
-            URL url = new URL(GRAPH_API_URL + "/mailFolders/inbox");
+            URL url = new URL(GRAPH_API_URL + "/mailFolders");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Authorization", "Bearer " + ACCESS_TOKEN);
