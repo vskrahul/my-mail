@@ -1,0 +1,188 @@
+{
+	"info": {
+		"_postman_id": "dc9c2773-a8dc-4531-b069-c8e927086ad8",
+		"name": "outlook",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "547625"
+	},
+	"item": [
+		{
+			"name": "/middle_tier",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"access_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "authorization_code",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "9112cdf2-35d3-452e-9468-aa0cea5b111f",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "api://9112cdf2-35d3-452e-9468-aa0cea5b111f/.default",
+							"type": "text"
+						},
+						{
+							"key": "code",
+							"value": "M.C531_SN1.2.U.c64f569e-32d8-9103-533d-352973ace9b0",
+							"type": "text"
+						},
+						{
+							"key": "redirect_uri",
+							"value": "http://localhost:8080/auth",
+							"type": "text"
+						}
+					]
+				},
+				"url": "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+			},
+			"response": []
+		},
+		{
+			"name": "/downstream",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"access_token_graph\", jsonData.access_token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "grant_type",
+							"value": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "9112cdf2-35d3-452e-9468-aa0cea5b111f",
+							"type": "text"
+						},
+						{
+							"key": "client_secret",
+							"value": "-Ff8Q~~~1ReU16JmAcrXDZxw_zC~ClVGdGx81ccI",
+							"type": "text"
+						},
+						{
+							"key": "assertion",
+							"value": "{{access_token}}",
+							"type": "text"
+						},
+						{
+							"key": "scope",
+							"value": "https://graph.microsoft.com/.default",
+							"type": "text"
+						},
+						{
+							"key": "requested_token_use",
+							"value": "on_behalf_of",
+							"type": "text"
+						},
+						{
+							"key": "client_assertion",
+							"value": "{{access_token}}",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "client_assertion_type",
+							"value": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+			},
+			"response": []
+		},
+		{
+			"name": "/me",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token_graph}}",
+						"type": "text"
+					}
+				],
+				"url": "https://graph.microsoft.com/v1.0/me"
+			},
+			"response": []
+		},
+		{
+			"name": "/mailFolders",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token_graph}}",
+						"type": "text"
+					}
+				],
+				"url": "https://graph.microsoft.com/v1.0/me/mailFolders"
+			},
+			"response": []
+		},
+		{
+			"name": "/mailFolder/{parent_id}/childFolders",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{access_token_graph}}",
+						"type": "text"
+					}
+				],
+				"url": "https://graph.microsoft.com/v1.0/me/mailFolders/AQMkADAwATZiZmYAZC0wMAAzOC02ZTg4AC0wMAItMDAKAC4AAAORCScleHlnQ4_9d6r1RvyNAQCxM8wXFs8KSonK8T9D4Yt0AAYqObaGAAAA/childFolders"
+			},
+			"response": []
+		}
+	]
+}
