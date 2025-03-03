@@ -62,16 +62,31 @@ curl --location 'https://login.microsoftonline.com/common/oauth2/v2.0/token' \
 --data-urlencode 'requested_token_use=on_behalf_of'
 ```
 
-#### Graph API 
-Call the required Graph API
+# Graph API
 
-E.g.;
+## Logged in user profile
+
+```curl
+curl --location 'https://graph.microsoft.com/v1.0/me' \
+--header 'Authorization: Bearer <downstream_access_token>'
+```
+
+![img.png](img/my_profile.png)
+
+
+## List down all mail folder
 ```curl
 curl --location 'https://graph.microsoft.com/v1.0/me/mailFolders' \
 --header 'Authorization: Bearer <downstream_access_token>'
 ```
 
 ![img.png](img/mailFolders.png)
+
+### List down child folder
+```curl
+curl --location 'https://graph.microsoft.com/v1.0/me/mailFolders/{mailFolder-id}/childFolders' \
+--header 'Authorization: Bearer <downstream_access_token>'
+```
 
 ### Troubleshooting Links
 

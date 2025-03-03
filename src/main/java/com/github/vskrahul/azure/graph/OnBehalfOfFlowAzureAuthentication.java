@@ -2,6 +2,8 @@ package com.github.vskrahul.azure.graph;
 
 import com.azure.identity.OnBehalfOfCredential;
 import com.azure.identity.OnBehalfOfCredentialBuilder;
+import com.github.vskrahul.azure.graph.api.MailFolderApi;
+import com.github.vskrahul.azure.graph.model.Folder;
 import com.microsoft.graph.models.MessageCollectionResponse;
 import com.microsoft.graph.serviceclient.GraphServiceClient;
 import com.sun.net.httpserver.HttpExchange;
@@ -26,7 +28,7 @@ public class OnBehalfOfFlowAzureAuthentication {
     private static final String CLIENT_SECRET = Creds.CLIENT_SECRET;
     private static final String REDIRECT_URI = "http://localhost:8080/auth";
     private static final String TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
-    private static final String GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me";
+    public static final String GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me";
     private static final String AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize" +
             "?client_id=" + CLIENT_ID +
             "&response_type=code" +
@@ -88,8 +90,9 @@ public class OnBehalfOfFlowAzureAuthentication {
                     ACCESS_TOKEN = middlewareAccessToken;
                     //server.stop(1);
                     if (accessToken != null) {
-                        fetchInboxMessageInfo();
-                        //fetchByGraph();
+                        java.util.List<Folder> folders = MailFolderApi.mailFolders(accessToken);
+                        //TODO: Write you logic here to navigate to seconds page
+                        // and render you List<Folder>
                     }
                 }
                 String response = "Authentication successful. You can close this window.";
