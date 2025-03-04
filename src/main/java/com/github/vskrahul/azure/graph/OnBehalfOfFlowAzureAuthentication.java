@@ -9,6 +9,7 @@ import com.microsoft.graph.serviceclient.GraphServiceClient;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import java.awt.*;
@@ -23,6 +24,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
 
+@Slf4j
 public class OnBehalfOfFlowAzureAuthentication {
     private static final String CLIENT_ID = Creds.CLIENT_ID;
     private static final String CLIENT_SECRET = Creds.CLIENT_SECRET;
@@ -85,12 +87,16 @@ public class OnBehalfOfFlowAzureAuthentication {
                 if (query != null && query.contains("code=")) {
                     String code = query.split("code=")[1].split("&")[0];
                     System.out.println("Authorization Code: " + code);
-                    String accessToken = exchangeAuthorizationCodeForToken(code);
-                    String middlewareAccessToken = fetchMiddleTierAccessToken(accessToken);
-                    ACCESS_TOKEN = middlewareAccessToken;
+                    String middleTierAccessToken = middleTierAccessToken(code);
+                    String downstreamAccessToken = downstreamAccessToken(middleTierAccessToken);
+                    ACCESS_TOKEN = downstreamAccessToken;
                     //server.stop(1);
-                    if (accessToken != null) {
-                        java.util.List<Folder> folders = MailFolderApi.mailFolders(accessToken);
+                    if (middleTierAccessToken != null) {
+                        java.util.List<Folder> folders = MailFolderApi.mailFolders(downstreamAccessToken);
+                        folders.forEach(v -> {
+                            log.info("[name={}] [unread count={}] [total count={}]", v.getDisplayName(),
+                                    v.getUnreadItemCount(), v.getTotalItemCount());
+                        });
                         //TODO: Write you logic here to navigate to seconds page
                         // and render you List<Folder>
                     }
@@ -107,7 +113,7 @@ public class OnBehalfOfFlowAzureAuthentication {
         System.out.println("Local server started on http://localhost:8080");
     }
 
-    private static String exchangeAuthorizationCodeForToken(String code) {
+    private static String middleTierAccessToken(String code) {
         String params = "grant_type=authorization_code" +
                 "&client_id=" + CLIENT_ID +
                 "&code=" + code +
@@ -117,7 +123,7 @@ public class OnBehalfOfFlowAzureAuthentication {
         return oauth2TokenCall(params);
     }
 
-    private static String fetchMiddleTierAccessToken(String accessToken) {
+    private static String downstreamAccessToken(String accessToken) {
         String params = "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" +
                 "&client_id=" + CLIENT_ID +
                 "&client_secret=" + CLIENT_SECRET +
@@ -150,7 +156,7 @@ public class OnBehalfOfFlowAzureAuthentication {
             in.close();
 
             String accessToken = response.toString().split("\"access_token\":\"")[1].split("\"")[0];
-            System.out.println("AccessToken Body " + accessToken);
+            log.debug("AccessToken Body " + accessToken);
             return accessToken;
         } catch (Exception e) {
             e.printStackTrace();

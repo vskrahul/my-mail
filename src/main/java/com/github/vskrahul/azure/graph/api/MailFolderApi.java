@@ -4,6 +4,7 @@ import com.github.vskrahul.azure.graph.model.Folder;
 import com.github.vskrahul.azure.graph.model.MailFolders;
 import com.github.vskrahul.azure.util.JsonUtil;
 import kotlin.collections.ArrayDeque;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -14,10 +15,10 @@ import java.util.List;
 
 import static com.github.vskrahul.azure.graph.OnBehalfOfFlowAzureAuthentication.GRAPH_API_URL;
 
+@Slf4j
 public class MailFolderApi {
 
     public static List<Folder> mailFolders(String accessToken) {
-        List<Folder> resultedList = null;
         try {
             URL url = new URL(GRAPH_API_URL + "/mailFolders");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -32,27 +33,28 @@ public class MailFolderApi {
             }
             in.close();
 
-            System.out.println("User Profile: " + response);
+            log.info("[method=mailFolders] response={}", response);
 
             MailFolders mailFolders = JsonUtil.jsonStringToInstance(response.toString(), MailFolders.class);
-            resultedList = checkForChildFolders(mailFolders.getValue(), accessToken);
-            return resultedList;
+            List<Folder> accumulatedMailFolders = new ArrayList<>();
+            checkForChildFolders(mailFolders.getValue(), accessToken, accumulatedMailFolders);
+            return accumulatedMailFolders;
         } catch (Exception e) {
             e.printStackTrace();
         }
         return new ArrayList<>();
     }
 
-    private static List<Folder> checkForChildFolders(List<Folder> resultedList, String accessToken) {
-        List<Folder> copy = new ArrayList<>(resultedList);
+    private static void checkForChildFolders(List<Folder> resultedList,
+                                                     String accessToken,
+                                                     List<Folder> accumulatedMailFolders) {
         for(Folder folder : resultedList) {
+            accumulatedMailFolders.add(folder);
             if(folder.getChildFolderCount() > 0) {
                 List<Folder> childFolders = childMailFolders(accessToken, folder);
-                checkForChildFolders(childFolders, accessToken);
-                copy.addAll(childFolders);
+                checkForChildFolders(childFolders, accessToken, accumulatedMailFolders);
             }
         }
-        return copy;
     }
 
     public static List<Folder> childMailFolders(String accessToken, Folder parentFolder) {
@@ -70,7 +72,7 @@ public class MailFolderApi {
             }
             in.close();
 
-            System.out.println("User Profile: " + response);
+            log.info("[method=childMailFolders] [parentFolderName={}] [value={}]", parentFolder.getDisplayName(), response);
 
             MailFolders mailFolders = JsonUtil.jsonStringToInstance(response.toString(), MailFolders.class);
             mailFolders.getValue().forEach(v -> {
