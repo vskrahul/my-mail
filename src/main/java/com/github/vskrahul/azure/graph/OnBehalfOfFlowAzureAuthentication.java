@@ -97,8 +97,8 @@ public class OnBehalfOfFlowAzureAuthentication {
                             log.info("[name={}] [unread count={}] [total count={}]", v.getDisplayName(),
                                     v.getUnreadItemCount(), v.getTotalItemCount());
                         });
-                        //TODO: Write you logic here to navigate to seconds page
-                        // and render you List<Folder>
+                        //TODO: Write your logic here to navigate to seconds page
+                        // and render your List<Folder>
                     }
                 }
                 String response = "Authentication successful. You can close this window.";
