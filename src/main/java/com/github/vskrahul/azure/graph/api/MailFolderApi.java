@@ -13,7 +13,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.vskrahul.azure.graph.OnBehalfOfFlowAzureAuthentication.GRAPH_API_URL;
+import static com.github.vskrahul.azure.graph.Creds.GRAPH_API_URL;
 
 @Slf4j
 public class MailFolderApi {

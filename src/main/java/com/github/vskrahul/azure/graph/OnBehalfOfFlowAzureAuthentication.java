@@ -4,6 +4,7 @@ import com.azure.identity.OnBehalfOfCredential;
 import com.azure.identity.OnBehalfOfCredentialBuilder;
 import com.github.vskrahul.azure.graph.api.MailFolderApi;
 import com.github.vskrahul.azure.graph.model.Folder;
+import com.github.vskrahul.azure.ui.swing.LoginPage;
 import com.microsoft.graph.models.MessageCollectionResponse;
 import com.microsoft.graph.serviceclient.GraphServiceClient;
 import com.sun.net.httpserver.HttpExchange;
@@ -24,25 +25,15 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
 
+import static com.github.vskrahul.azure.graph.Creds.*;
+
 @Slf4j
 public class OnBehalfOfFlowAzureAuthentication {
-    private static final String CLIENT_ID = Creds.CLIENT_ID;
-    private static final String CLIENT_SECRET = Creds.CLIENT_SECRET;
-    private static final String REDIRECT_URI = "http://localhost:8080/auth";
-    private static final String TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
-    public static final String GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me";
-    private static final String AUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize" +
-            "?client_id=" + CLIENT_ID +
-            "&response_type=code" +
-            "&redirect_uri=" + REDIRECT_URI +
-            "&response_mode=query" +
-            "&scope=https://graph.microsoft.com/.default" +
-            "&state=12345";
 
     private static String ACCESS_TOKEN = "";
 
     public static void main(String[] args) throws Exception {
-        startLocalServer();
+        startLocalServer(null);
         JFrame frame = new JFrame("Outlook Authentication");
         frame.setSize(400, 200);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -78,7 +69,7 @@ public class OnBehalfOfFlowAzureAuthentication {
     }
 
     static HttpServer server = null;
-    private static void startLocalServer() throws Exception {
+    public static void startLocalServer(LoginPage loginPage) throws Exception {
         server = HttpServer.create(new InetSocketAddress(8080), 0);
         server.createContext("/auth", new HttpHandler() {
             @Override
@@ -99,6 +90,9 @@ public class OnBehalfOfFlowAzureAuthentication {
                         });
                         //TODO: Write your logic here to navigate to seconds page
                         // and render your List<Folder>
+                        if(loginPage != null) {
+                            loginPage.showMailFolders(folders);
+                        }
                     }
                 }
                 String response = "Authentication successful. You can close this window.";
