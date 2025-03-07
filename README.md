@@ -1,9 +1,21 @@
 # Azure On-Behalf-Of flow Demo
 
-## Ref:-
+### Create Application on Entra
 
-### Microsoft documentation
+Goto - https://entra.microsoft.com/
+
+Use following documentation for reference
+Microsoft documentation
 https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow
+
+![img.png](img/entra_image.png)
+
+### Start the App
+1. Copy `client_id`, `client_secret`, `tenant_id` from elantra app created above and place them in `com.github.vskrahul.azure.graph.Creds.java` class
+2. Run main method in `com.github.vskrahul.azure.ui.swing.MyMailApp.java`
+3. Click on `Sign In` button to login using microsoft Oauth model via browser
+4. After successfully login, following screen will be displayed
+![img.png](img/folder_table.png)
 
 ### Decode JWT token
 1. https://jwt.ms
@@ -114,3 +126,8 @@ https://stackoverflow.com/questions/51781898/aadsts70011-the-provided-value-for-
 
 https://github.com/Azure-Samples/ms-identity-msal-java-samples/tree/main
 
+
+## Ref:-
+
+### Microsoft documentation
+https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow
